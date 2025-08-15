@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity Ball - Physics Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --dark: #1b263b;
+            --light: #f8f9fa;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #7209b7;
+            --background: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #212529;
+            --text-light: #6c757d;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            background-color: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .physics-sidebar {
+            width: 320px;
+            background: linear-gradient(135deg, var(--dark), #2a3a5e);
+            color: var(--light);
+            padding: 25px;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3 {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            color: var(--light);
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin-top: 0;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        #ball {
+            position: absolute;
+            width: 42px;
+            height: 42px;
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, var(--danger));
+            border-radius: 50%;
+            bottom: 100px;
+            left: 50px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 5;
+        }
+        
+        .target {
+            position: absolute;
+            width: 62px;
+            height: 62px;
+            background: radial-gradient(circle at 30% 30%, var(--success), #38b000);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 4;
+            transition: transform 0.2s, background 0.3s;
+        }
+        
+        .target:hover {
+            transform: scale(1.05);
+        }
+        
+        .obstacle {
+            position: absolute;
+            background: linear-gradient(145deg, #5a6778, #3a4555);
+            border-radius: 8px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 3;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 16px;
+            width: 760px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        
+        .control-row {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        label {
+            width: 160px;
+            font-weight: 500;
+            color: var(--text);
+            font-size: 0.95rem;
+        }
+        
+        input[type="range"] {
+            flex-grow: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--light);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .value-display {
+            width: 60px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+            background: rgba(67, 97, 238, 0.1);
+            padding: 5px;
+            border-radius: 6px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(67, 97, 238, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #adb5bd;
+            transform: none;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        
+        .level-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            color: var(--info);
+            font-size: 1rem;
+        }
+        
+        .challenge-display {
+            position: absolute;
+            top: 60px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            color: var(--warning);
+            font-size: 1rem;
+        }
+        
+        .level-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .level-btn {
+            padding: 10px 20px;
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .level-btn:hover {
+            background: rgba(67, 97, 238, 0.2);
+        }
+        
+        .level-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .level-btn.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: rgba(108, 117, 125, 0.1);
+            border-color: var(--text-light);
+            color: var(--text-light);
+        }
+        
+        .concept-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .concept-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .concept-card h3 {
+            margin-top: 0;
+            color: var(--success);
+            border-bottom: 2px solid rgba(76, 201, 240, 0.3);
+            padding-bottom: 8px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .concept-card p, .concept-card ul {
+            margin-bottom: 0;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.95rem;
+        }
+        
+        .concept-card ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .concept-card li {
+            margin-bottom: 8px;
+            position: relative;
+        }
+        
+        .concept-card li::before {
+            content: "•";
+            color: var(--accent);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+        
+        .formula {
+            font-family: 'Courier New', monospace;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 8px 0;
+            color: #f8f9fa;
+            font-size: 0.95rem;
+            border-left: 3px solid var(--accent);
+        }
+        
+        .game-title {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .game-subtitle {
+            text-align: center;
+            color: var(--text-light);
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+        
+        .completion-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 100;
+            display: none;
+        }
+        
+        .completion-message h3 {
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 1200px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .physics-sidebar {
+                width: 100%;
+                height: auto;
+                padding: 20px;
+            }
+            
+            .game-container, .controls {
+                width: 95%;
+                max-width: 800px;
+            }
+            
+            .control-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .level-selector {
+                flex-wrap: wrap;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 20px 15px;
+            }
+            
+            .controls {
+                padding: 20px;
+            }
+            
+            .concept-card {
+                padding: 15px;
+            }
+        }
+        
+        /* Animation for the ball */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        #ball {
+            animation: pulse 2s infinite ease-in-out;
+        }
+        
+        /* Floating animation for targets */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .target {
+            animation: float 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="physics-sidebar">
+        <h2>Physics Concepts</h2>
+        
+        <div class="concept-card">
+            <h3>📐 Projectile Motion</h3>
+            <p>The motion of an object thrown or projected into the air, subject to gravity.</p>
+            <div class="formula">x(t) = v₀·cos(θ)·t</div>
+            <div class="formula">y(t) = v₀·sin(θ)·t - ½gt²</div>
+            <ul>
+                <li>x(t): Horizontal position at time t</li>
+                <li>y(t): Vertical position at time t</li>
+                <li>v₀: Initial velocity</li>
+                <li>θ: Launch angle</li>
+                <li>g: Acceleration due to gravity</li>
+            </ul>
+        </div>
+        
+        <div class="concept-card">
+            <h3>🌍 Gravity</h3>
+            <p>The force that attracts objects toward the center of a celestial body.</p>
+            <ul>
+                <li>Earth: 9.8 m/s²</li>
+                <li>Moon: 1.62 m/s²</li>
+                <li>Jupiter: 24.79 m/s²</li>
+            </ul>
+            <p>Higher gravity causes objects to fall faster and reduces flight time.</p>
+        </div>
+        
+        <div class="concept-card">
+            <h3>🚀 Trajectory</h3>
+            <p>The path followed by a projectile under the action of gravity.</p>
+            <p>Key factors affecting trajectory:</p>
+            <ul>
+                <li>Launch angle (θ)</li>
+                <li>Initial velocity (v₀)</li>
+                <li>Gravity (g)</li>
+                <li>Air resistance (neglected in this simulation)</li>
+            </ul>
+        </div>
+        
+        <div class="concept-card">
+            <h3>⚙️ Current Parameters</h3>
+            <p id="current-angle">Angle (θ): 45°</p>
+            <p id="current-velocity">Velocity (v₀): 20 m/s</p>
+            <p id="current-gravity">Gravity (g): 9.8 m/s²</p>
+            <p id="current-level-info">Level: 1 (Earth)</p>
+            <p id="current-challenge-info">Challenge: 1/3</p>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="game-title">
+            <h1>Gravity Ball Physics Game</h1>
+            <p class="game-subtitle">Complete all challenges to reach Jupiter (Level 4)!</p>
+        </div>
+        
+        <div class="level-selector">
+            <button class="level-btn active" data-level="1">🌍 Level 1</button>
+            <button class="level-btn locked" data-level="2">🏃 Level 2</button>
+            <button class="level-btn locked" data-level="3">🌙 Level 3</button>
+            <button class="level-btn locked" data-level="4">🪐 Level 4</button>
+        </div>
+        
+        <div class="game-container">
+            <div id="ball"></div>
+            <div class="level-display">Level: <span id="current-level">1</span></div>
+            <div class="challenge-display">Challenge: <span id="current-challenge">1</span>/3</div>
+            <div class="completion-message" id="completion-message">
+                <h3>Challenge Complete!</h3>
+                <p id="message-text">You hit all targets!</p>
+                <button id="next-challenge-btn">Continue</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-row">
+                <div class="slider-container">
+                    <label for="angle">Launch Angle (θ):</label>
+                    <input type="range" id="angle" min="0" max="90" value="45">
+                    <span class="value-display" id="angle-value">45°</span>
+                </div>
+                
+                <div class="slider-container">
+                    <label for="velocity">Initial Velocity (v₀):</label>
+                    <input type="range" id="velocity" min="0" max="50" value="20">
+                    <span class="value-display" id="velocity-value">20 m/s</span>
+                </div>
+            </div>
+            
+            <div class="control-row">
+                <div class="slider-container">
+                    <label for="gravity">Gravity (g):</label>
+                    <input type="range" id="gravity" min="0" max="20" value="9.8">
+                    <span class="value-display" id="gravity-value">9.8 m/s²</span>
+                </div>
+                
+                <button id="launch-btn">🚀 Launch Ball</button>
+            </div>
+            
+            <div class="control-row">
+                <button id="reset-btn">↩️ Reset Parameters</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game elements
+        const ball = document.getElementById('ball');
+        const gameContainer = document.querySelector('.game-container');
+        const currentLevelDisplay = document.getElementById('current-level');
+        const currentChallengeDisplay = document.getElementById('current-challenge');
+        const completionMessage = document.getElementById('completion-message');
+        const messageText = document.getElementById('message-text');
+        const nextChallengeBtn = document.getElementById('next-challenge-btn');
+        
+        // Control elements
+        const angleSlider = document.getElementById('angle');
+        const velocitySlider = document.getElementById('velocity');
+        const gravitySlider = document.getElementById('gravity');
+        const angleValue = document.getElementById('angle-value');
+        const velocityValue = document.getElementById('velocity-value');
+        const gravityValue = document.getElementById('gravity-value');
+        const launchBtn = document.getElementById('launch-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const levelButtons = document.querySelectorAll('.level-btn');
+        
+        // Physics concept displays
+        const currentAngleDisplay = document.getElementById('current-angle');
+        const currentVelocityDisplay = document.getElementById('current-velocity');
+        const currentGravityDisplay = document.getElementById('current-gravity');
+        const currentLevelInfoDisplay = document.getElementById('current-level-info');
+        const currentChallengeInfoDisplay = document.getElementById('current-challenge-info');
+        
+        // Game state
+        let currentLevel = 1;
+        let currentChallenge = 1;
+        let targets = [];
+        let obstacles = [];
+        let movingTargets = [];
+        let animationId = null;
+        let isBallMoving = false;
+        let gameInitialized = false;
+        let unlockedLevels = [1]; // Start with only level 1 unlocked
+        
+        // Level configurations
+        const levels = {
+            1: {
+                name: "Earth",
+                gravity: 9.8,
+                challenges: [
+                    { targetCount: 3, hasObstacles: false, hasMovingTargets: false, description: "Hit all 3 stationary targets" },
+                    { targetCount: 4, hasObstacles: true, hasMovingTargets: false, description: "Hit 4 targets with obstacles" },
+                    { targetCount: 3, hasObstacles: false, hasMovingTargets: true, description: "Hit 3 moving targets" }
+                ]
+            },
+            2: {
+                name: "Advanced Earth",
+                gravity: 9.8,
+                challenges: [
+                    { targetCount: 4, hasObstacles: true, hasMovingTargets: true, description: "Hit 4 moving targets with obstacles" },
+                    { targetCount: 5, hasObstacles: true, hasMovingTargets: false, description: "Hit 5 targets with more obstacles" },
+                    { targetCount: 4, hasObstacles: false, hasMovingTargets: true, description: "Hit 4 faster moving targets" }
+                ]
+            },
+            3: {
+                name: "Moon",
+                gravity: 1.62,
+                challenges: [
+                    { targetCount: 4, hasObstacles: false, hasMovingTargets: false, description: "Low gravity - hit 4 targets" },
+                    { targetCount: 5, hasObstacles: true, hasMovingTargets: false, description: "Low gravity with obstacles" },
+                    { targetCount: 4, hasObstacles: true, hasMovingTargets: true, description: "Low gravity with moving targets" }
+                ]
+            },
+            4: {
+                name: "Jupiter",
+                gravity: 24.79,
+                challenges: [
+                    { targetCount: 3, hasObstacles: false, hasMovingTargets: false, description: "High gravity - hit 3 targets" },
+                    { targetCount: 4, hasObstacles: true, hasMovingTargets: false, description: "High gravity with obstacles" },
+                    { targetCount: 5, hasObstacles: true, hasMovingTargets: true, description: "Final challenge: high gravity with moving targets" }
+                ]
+            }
+        };
+        
+        // Initialize the game
+        function initGame() {
+            // Clear any existing game elements
+            clearGameElements();
+            
+            // Set initial ball position
+            ball.style.bottom = '100px';
+            ball.style.left = '50px';
+            
+            // Set parameters based on level
+            const levelConfig = levels[currentLevel];
+            gravitySlider.value = levelConfig.gravity;
+            
+            // Get current challenge configuration
+            const challengeConfig = levelConfig.challenges[currentChallenge - 1];
+            
+            // Create game elements
+            createTargets(challengeConfig.targetCount);
+            
+            if (challengeConfig.hasObstacles) {
+                createObstacles();
+            }
+            
+            // Update displays
+            updateSliderDisplays();
+            currentLevelDisplay.textContent = currentLevel;
+            currentChallengeDisplay.textContent = currentChallenge;
+            updatePhysicsConceptsDisplay();
+            
+            gameInitialized = true;
+        }
+        
+        // Clear all game elements
+        function clearGameElements() {
+            // Clear targets
+            targets.forEach(target => {
+                if (target.element && target.element.parentNode) {
+                    gameContainer.removeChild(target.element);
+                }
+            });
+            targets = [];
+            
+            // Clear obstacles
+            obstacles.forEach(obstacle => {
+                if (obstacle.element && obstacle.element.parentNode) {
+                    gameContainer.removeChild(obstacle.element);
+                }
+            });
+            obstacles = [];
+            
+            // Clear moving targets
+            movingTargets = [];
+            
+            // Stop any animations
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            isBallMoving = false;
+        }
+        
+        // Create random targets
+        function createTargets(count) {
+            const containerWidth = gameContainer.offsetWidth;
+            const containerHeight = gameContainer.offsetHeight;
+            
+            for (let i = 0; i < count; i++) {
+                const target = document.createElement('div');
+                target.className = 'target';
+                target.textContent = i + 1;
+                
+                // Random position (but not too close to edges or ball)
+                const left = 300 + Math.random() * (containerWidth - 400);
+                const bottom = 50 + Math.random() * (containerHeight - 200);
+                
+                target.style.left = `${left}px`;
+                target.style.bottom = `${bottom}px`;
+                
+                gameContainer.appendChild(target);
+                
+                const targetObj = {
+                    element: target,
+                    left,
+                    bottom,
+                    width: 60,
+                    height: 60,
+                    hit: false
+                };
+                
+                targets.push(targetObj);
+                
+                // Add to moving targets if level requires it
+                const challengeConfig = levels[currentLevel].challenges[currentChallenge - 1];
+                if (challengeConfig.hasMovingTargets) {
+                    targetObj.speed = 1 + Math.random() * 2;
+                    targetObj.direction = Math.random() > 0.5 ? 1 : -1;
+                    movingTargets.push(targetObj);
+                }
+            }
+        }
+        
+        // Create obstacles
+        function createObstacles() {
+            const containerWidth = gameContainer.offsetWidth;
+            const containerHeight = gameContainer.offsetHeight;
+            const challengeConfig = levels[currentLevel].challenges[currentChallenge - 1];
+            const obstacleCount = challengeConfig.hasMovingTargets ? 2 : 3;
+            
+            for (let i = 0; i < obstacleCount; i++) {
+                const obstacle = document.createElement('div');
+                obstacle.className = 'obstacle';
+                
+                // Random size and position
+                const width = 80 + Math.random() * 70;
+                const height = 20 + Math.random() * 50;
+                const left = 200 + Math.random() * (containerWidth - 400);
+                const bottom = 100 + Math.random() * (containerHeight - 300);
+                
+                obstacle.style.width = `${width}px`;
+                obstacle.style.height = `${height}px`;
+                obstacle.style.left = `${left}px`;
+                obstacle.style.bottom = `${bottom}px`;
+                
+                gameContainer.appendChild(obstacle);
+                
+                obstacles.push({
+                    element: obstacle,
+                    left,
+                    bottom,
+                    width,
+                    height
+                });
+            }
+        }
+        
+        // Update slider value displays
+        function updateSliderDisplays() {
+            angleValue.textContent = `${angleSlider.value}°`;
+            velocityValue.textContent = `${velocitySlider.value} m/s`;
+            gravityValue.textContent = `${gravitySlider.value} m/s²`;
+            updatePhysicsConceptsDisplay();
+        }
+        
+        // Update physics concepts display
+        function updatePhysicsConceptsDisplay() {
+            currentAngleDisplay.textContent = `Angle (θ): ${angleSlider.value}°`;
+            currentVelocityDisplay.textContent = `Velocity (v₀): ${velocitySlider.value} m/s`;
+            currentGravityDisplay.textContent = `Gravity (g): ${gravitySlider.value} m/s²`;
+            currentLevelInfoDisplay.textContent = `Level: ${currentLevel} (${levels[currentLevel].name})`;
+            currentChallengeInfoDisplay.textContent = `Challenge: ${currentChallenge}/3 - ${levels[currentLevel].challenges[currentChallenge - 1].description}`;
+        }
+        
+        // Move moving targets
+        function moveTargets() {
+            const containerWidth = gameContainer.offsetWidth;
+            
+            movingTargets.forEach(target => {
+                if (target.hit) return;
+                
+                // Update position
+                target.left += target.speed * target.direction;
+                
+                // Reverse direction if hitting edge
+                if (target.left <= 300 || target.left + target.width >= containerWidth - 100) {
+                    target.direction *= -1;
+                }
+                
+                // Update element position
+                target.element.style.left = `${target.left}px`;
+            });
+        }
+        
+        // Launch the ball
+        function launchBall() {
+            if (isBallMoving || velocitySlider.value == 0) return;
+            
+            const angle = parseFloat(angleSlider.value) * Math.PI / 180; // Convert to radians
+            const velocity = parseFloat(velocitySlider.value);
+            const gravity = parseFloat(gravitySlider.value);
+            
+            const scale = 5; // Scale factor for visualization
+            
+            let time = 0;
+            const timeStep = 0.05;
+            
+            const startLeft = 50;
+            const startBottom = 100;
+            
+            isBallMoving = true;
+            launchBtn.disabled = true;
+            
+            function animate() {
+                time += timeStep;
+                
+                // Calculate position using projectile motion equations
+                const x = velocity * Math.cos(angle) * time * scale;
+                const y = (velocity * Math.sin(angle) * time - 0.5 * gravity * time * time) * scale;
+                
+                // Update ball position
+                const ballLeft = startLeft + x;
+                const ballBottom = startBottom + y;
+                
+                ball.style.left = `${ballLeft}px`;
+                ball.style.bottom = `${ballBottom}px`;
+                
+                // Move targets if level has them
+                const challengeConfig = levels[currentLevel].challenges[currentChallenge - 1];
+                if (challengeConfig.hasMovingTargets) {
+                    moveTargets();
+                }
+                
+                // Check for collisions
+                checkCollisions(ballLeft, ballBottom);
+                
+                // Check if ball is out of bounds or on the ground
+                if (ballBottom <= 0 || ballLeft >= gameContainer.offsetWidth || checkObstacleCollision(ballLeft, ballBottom)) {
+                    isBallMoving = false;
+                    launchBtn.disabled = false;
+                    cancelAnimationFrame(animationId);
+                    return;
+                }
+                
+                animationId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+        
+        // Check for collisions with targets
+        function checkCollisions(ballLeft, ballBottom) {
+            const ballWidth = 40;
+            const ballHeight = 40;
+            
+            targets.forEach(target => {
+                if (!target.hit &&
+                    ballLeft + ballWidth > target.left &&
+                    ballLeft < target.left + target.width &&
+                    ballBottom + ballHeight > target.bottom &&
+                    ballBottom < target.bottom + target.height) {
+                    
+                    // Hit detected!
+                    target.hit = true;
+                    target.element.style.background = 'radial-gradient(circle at 30% 30%, var(--warning), #e85d04)';
+                    target.element.textContent = '🎯';
+                    
+                    // Check if all targets are hit
+                    if (targets.every(t => t.hit)) {
+                        setTimeout(() => {
+                            showCompletionMessage();
+                        }, 500);
+                    }
+                }
+            });
+        }
+        
+        // Show completion message
+        function showCompletionMessage() {
+            const challengeConfig = levels[currentLevel].challenges[currentChallenge - 1];
+            messageText.textContent = `Challenge ${currentChallenge} complete! ${challengeConfig.description}`;
+            completionMessage.style.display = 'block';
+        }
+        
+        // Go to next challenge
+        function nextChallenge() {
+            completionMessage.style.display = 'none';
+            
+            if (currentChallenge < 3) {
+                currentChallenge++;
+                initGame();
+            } else {
+                // Level completed
+                
+                // Unlock next level if not already unlocked
+                if (currentLevel < 4 && !unlockedLevels.includes(currentLevel + 1)) {
+                    unlockedLevels.push(currentLevel + 1);
+                    updateLevelButtons();
+                }
+                
+                if (currentLevel < 4) {
+                    if (confirm(`🎉 Level ${currentLevel} completed! Would you like to move to level ${currentLevel + 1}?`)) {
+                        currentLevel++;
+                        currentChallenge = 1;
+                        initGame();
+                    } else {
+                        // Stay on current level but reset challenges
+                        currentChallenge = 1;
+                        initGame();
+                    }
+                } else {
+                    alert(`🏆 Congratulations! You've reached Jupiter (Level 4) and mastered gravity physics!`);
+                    currentLevel = 1;
+                    currentChallenge = 1;
+                    initGame();
+                }
+            }
+        }
+        
+        // Update level buttons based on unlocked levels
+        function updateLevelButtons() {
+            levelButtons.forEach(btn => {
+                const level = parseInt(btn.dataset.level);
+                if (unlockedLevels.includes(level)) {
+                    btn.classList.remove('locked');
+                    if (level === currentLevel) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                } else {
+                    btn.classList.add('locked');
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        // Check for collisions with obstacles
+        function checkObstacleCollision(ballLeft, ballBottom) {
+            const ballWidth = 40;
+            const ballHeight = 40;
+            
+            for (const obstacle of obstacles) {
+                if (ballLeft + ballWidth > obstacle.left &&
+                    ballLeft < obstacle.left + obstacle.width &&
+                    ballBottom + ballHeight > obstacle.bottom &&
+                    ballBottom < obstacle.bottom + obstacle.height) {
+                    return true; // Collision detected
+                }
+            }
+            return false;
+        }
+        
+        // Change level
+        function changeLevel(level) {
+            if (!unlockedLevels.includes(level)) return;
+            
+            currentLevel = level;
+            currentChallenge = 1;
+            
+            // Update active button
+            updateLevelButtons();
+            
+            initGame();
+        }
+        
+        // Reset parameters to zero
+        function resetParameters() {
+            angleSlider.value = 0;
+            velocitySlider.value = 0;
+            updateSliderDisplays();
+        }
+        
+        // Event listeners
+        angleSlider.addEventListener('input', updateSliderDisplays);
+        velocitySlider.addEventListener('input', updateSliderDisplays);
+        gravitySlider.addEventListener('input', updateSliderDisplays);
+        
+        launchBtn.addEventListener('click', launchBall);
+        resetBtn.addEventListener('click', resetParameters);
+        
+        levelButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                changeLevel(parseInt(btn.dataset.level));
+            });
+        });
+        
+        nextChallengeBtn.addEventListener('click', nextChallenge);
+        
+        // Initialize the game
+        initGame();
+    </script>
+</body>
+</html>

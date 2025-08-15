@@ -1,0 +1,1 @@
+This is a physics-based projectile motion game where players adjust launch angle, velocity, and gravity to hit targets across different planetary levels. The game teaches physics concepts through interactive challenges with increasing difficulty, from Earth to Jupiter's gravity.
